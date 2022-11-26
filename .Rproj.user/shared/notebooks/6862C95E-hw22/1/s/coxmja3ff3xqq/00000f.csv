@@ -1,0 +1,1 @@
+"0","plot(pi.cumul, xlab='Eigenvalue Number', ylab='Cumulative Proportion', main='')"

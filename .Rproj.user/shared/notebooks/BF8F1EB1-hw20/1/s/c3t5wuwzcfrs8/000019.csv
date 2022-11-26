@@ -1,0 +1,7 @@
+"0",""
+"0","data.frame("
+"0","    Model = 1:8,"
+"0","  Adj.R2 = res.sum$adjr2,"
+"0","  CP = res.sum$cp,"
+"0","  BIC = res.sum$bic"
+"0",")"

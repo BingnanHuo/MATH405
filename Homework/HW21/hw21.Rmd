@@ -1,0 +1,111 @@
+---
+title: 'HW 21'
+author: "Nick Huo & Anqi Zang"
+date: "`r Sys.Date()`"
+output: 
+    pdf_document:
+        fig_width: 5.5
+        fig_height: 3.5
+        fig_caption: true
+papersize: letter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+## a. -- d.
+
+```{r}
+set.seed(567)
+x1 <- rnorm(25)
+x2 <- rnorm(25)
+x3 <- rnorm(25)
+x4 <- rnorm(25)
+x5 <- x1 + 2*x2 + rnorm(25)
+
+X <- matrix(c(scale(x1),scale(x2),scale(x3),scale(x4),scale(x5)),25,5)
+X
+
+cov(X)
+```
+
+
+## e.
+
+```{r}
+calc_vif <- function(mtx) {
+    res <- c()
+    for (i in 1:ncol(mtx)) {
+        mod <- lm(mtx[,i] ~ mtx[,-i])
+        rsq <- summary(mod)$r.squared
+        res <- c(res, 1/(1-rsq))
+    }
+    return(res)
+}
+
+calc_vif(X)
+```
+
+# Question 2
+
+## a.
+
+```{r}
+Xnew <- rbind(c(1, -1.195, 0.147, 1.339), c(1, 0.88, 0.555, 0.039), c(1, -0.368, -0.148, 1.021), c(1, 1.728, -0.134, 0.398), c(1, -0.49, -0.013, 1.332), c(1, 0.29, 0.551, -0.279), c(1, -1.513, 0.168, -1.384), c(1, 0.572, -2.32, -0.638))
+Xnew
+cor(Xnew[, -1])
+t(Xnew) %*% Xnew
+```
+
+The matrix shows that these covariation are loosely correlated with each other, so that they are orthogonal. 
+
+And looking at $X^TX$, we see that only the diagonal elements have large values, other elements are very small. So this also means that the matrix is orthogonal
+
+## b.
+```{r}
+Xb <- solve(t(Xnew)%*%Xnew)
+Xb
+```
+
+The matrix is symmetric. The components of the matrix are very small.
+
+
+## c.
+
+The components of matrix are very small, so the variance of our beta estimators are also small. Thus we will have a more narrow CI around the true value. And it will be easier for us to find the beta values significant.
+
+
+## d.
+
+```{r}
+calc_vif(Xnew[, -1])
+```
+
+# Question 3
+
+## (a)
+
+As we have seen from an earlier homework, as the number of covariates increase, $R^2$ increases even when there is no relationship between the covariates. Thus, even if there is actually no multicollinearity present in our data, if we have too many predictors, the $VIF$ will be large for all covariates.
+
+## (b)
+
+```{r}
+mean_vif <- c()
+n <- 110
+for (i in 3:100) {
+    test_mat <- matrix(NA,n,i)
+    for (j in 1:i) {
+        test_mat[,j] <- rnorm(n)
+    }
+    this_mean <- mean(calc_vif(test_mat))
+    mean_vif <- c(mean_vif,this_mean)
+}
+
+plot(3:100, mean_vif, main="# Covariates vs. Mean VIF of all covariates",
+        xlab="# Covariates", ylab="Mean VIF of all covariates")
+```
+
+All the covarites (columns of the design matrices) are randomly generated $N(0,1)$ vectors, so we know that there is no multicollinearity in the data. However, we see that as we increase the number of covariates, there is this trend of increased mean VIF throughout all covariates. 

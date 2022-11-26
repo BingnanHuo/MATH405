@@ -1,0 +1,1 @@
+"0","X <- as.matrix(Hitters[,-which(colnames(Hitters) == ""Salary"")])"

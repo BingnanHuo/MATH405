@@ -1,0 +1,5 @@
+"0","for (i in 1:1000) {"
+"0","    this_lbd <- lbds[i]"
+"0","    biases_ridge[i,] <- bias_ridge(X, this_lbd, beta_ridge)"
+"0","    vars_ridge[i,] <- diag(var_ridge(X, this_lbd, sigmasq_ridge))"
+"0","}"

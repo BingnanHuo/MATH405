@@ -1,0 +1,5 @@
+"0","library(glmnet)"
+"2","Loaded glmnet 4.1-4
+"
+"0","ridge_cv <- cv.glmnet(X, y, alpha=0)"
+"0","plot(ridge_cv, main=""Lambda Values for Ridge Regression with Cross-Validation"")"

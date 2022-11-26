@@ -1,0 +1,16 @@
+"0","library(ISLR)"
+"2","
+Attaching package: ‘ISLR’
+
+"
+"2","The following object is masked _by_ ‘.GlobalEnv’:
+
+    Hitters
+
+"
+"0","data(Hitters)"
+"0",""
+"0","Hitters <- na.omit(Hitters)"
+"0","cat.cols <- c(""League"",""Division"",""NewLeague"")"
+"0","Hitters <- Hitters[ ,-which(colnames(Hitters)%in%cat.cols)]"
+"0","attach(Hitters)"

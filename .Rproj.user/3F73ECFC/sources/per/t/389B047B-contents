@@ -1,0 +1,204 @@
+---
+title: 'Math405 -- HW22'
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: 
+    pdf_document:
+        fig_width: 5.5
+        fig_height: 3.5
+        fig_caption: true
+papersize: letter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+```{r}
+dat <- read.csv("HW22.csv")
+attach(dat)
+```
+
+## a.
+
+The principle of hierarchy generally means that we should keep the fundamental terms when we add terms that are modifying the original terms (like an interaction term). In the case of polynomial regressions, when we add higher power terms, we should keep the lower order terms. For example, if we need to fit $X_1^3$, we should still keep $X_1^2$ and $X_1$ in the model.
+
+## b.
+
+```{r}
+mod1 <- lm(Y ~ ., data=dat)
+summary(mod1)
+```
+
+The Global F-test is significant with F-statistic of 2.988 on 3 and 46 DF with a p-value $=0.041$.
+This indicates that at least one of the predictors is significant in explaining the variability in $Y$.
+
+The $R_{adj}^2$, however, is really small -- only 0.11 -- meaning that only 11% of the variability in $Y$
+is being explained by the predictors.
+
+Finally, we see that only $X_2$ is significant, with p-values $= 0.007$.
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(fitted(mod1), resid(mod1), main="Residuals vs Fitted Values",
+        xlab="Fitted Values", ylab="Residuals")
+plot(X1, Y, main="X1 vs Y", xlab="X1", ylab="Y")
+plot(X2, Y, main="X2 vs Y", xlab="X2", ylab="Y")
+plot(X3, Y, main="X3 vs Y", xlab="X3", ylab="Y")
+```
+
+When looking at the Residuals vs. Fitted plot, we are seeing a mostly no pattern, 
+and one possible outlier, but it shouldn't have high influence on the model.
+
+Looking at the relationships between $X1,X2,X3$ vs $Y$ though, we see seeing clear 
+nonlinear relationships between $X1,Y$ and $X3,Y$. This is a problem as it violates the linearity condition.
+The relationship between $X2,Y$ seems to be linear.
+
+## c.
+
+```{r}
+library(car)
+crPlots(mod1)
+```
+
+The plots are showing the relationship between the predictors and their partial residuals,
+that is, the relationship between specific predictors and the response while accounting for 
+the effects of other predictors.
+And we would expect to see a linear relationship between predictors and the response.
+
+For $X1,X3$, we are seeing clear curved relationships, as indicated by the pink trend line.
+So we might want to explore that.
+For $X2$, the relationship seems to be linear and should be ok.
+
+## d.
+
+```{r}
+mod2 <- lm(Y~.+I(X1^2), data=dat)
+summary(mod2)
+crPlots(mod2)
+```
+
+
+```{r}
+mod3 <- lm(Y~.+I(X1^2)+I(X3^2), data=dat)
+summary(mod3)
+crPlots(mod3)
+```
+
+## e.
+
+In mod1, the original model is the model is $\hat{Y}=X1+X2+X3$, and we saw horrible performance with it: 
+Residual SE was 2.83, the $R_{adj}^2$ was only 0.10, and only one predictor is significant.
+According to the partial residual plots, $X1$ and $X3$ might have linearity problems.
+
+In mod2, we first add a second order term for $X1$, so the model is $\hat{Y}=X1+X2+X3+(X1)^2$.
+Now, Residual SE was 1.33, the $R_{adj}^2$ is 0.80 and all the predictors are significant.
+The partial residual plots indicate that the linearity problem in $X1$ has been largely accounted for.
+Now, $X3$ has the most problem.
+
+In mod3, we add a second order term for $X3$, so now the model is $\hat{Y}=X1+X2+X3+(X1)^2+(X3)^2$.
+Now, Residual SE was 0.50, the $R_{adj}^2$ is 0.97 and the all, except the low order predictors, are significant.
+The partial residuals plots show that all the predictors now have a linear relationship with the response,
+while accounting for the effects of other predictors. Thus, linearity condition is met. Also, even if the lower order 
+predictors are not significant, by the Principle of hierarchy, we should still keep them in the model.
+
+As we fit the problems in linearity in the predictors, we see the $R_{adj}^2$ increasing and Residual SE decreasing drastically.
+
+# 2.
+
+```{r}
+detach(dat)
+wine <- read.csv("winequality.csv")
+attach(wine)
+```
+
+## a.
+
+```{r}
+mod_wine <- lm(quality~., data=wine)
+summary(mod_wine)
+```
+
+The Global F-test is significant with F-statistic of 6.04 on 11 and 88 DF with a p-value $<0.0001$.
+This indicates that at least one of the predictors is significant in explaining the variability in wine quality.
+
+The $R_{adj}^2$ is quite small -- only 0.36 -- meaning that only 36% of the variability in wine quality
+is being explained by the predictors.
+
+Finally, we notice that only one predictor (alcohol) is significant. There might be multicollinearity in the predictors.
+We should look at the correlation matrix to check for this. We can also use Principle Components Regression to help.
+
+## b.
+
+```{r}
+X <- scale(as.matrix(wine[,-12]))
+round(cor(X),3)
+```
+
+The correlation matrix indicate that some of the predictors are moderately correlated ($|r|\approx 0.6$).
+
+```{r}
+e <- eigen(t(X)%*%X)
+e
+```
+
+```{r}
+V <- e$vectors
+lam <- e$values
+plot(lam, xlab='Eigenvalue Number', ylab='Eigenvalue Size', main='Scree Plot')
+lines(lam)
+```
+
+```{r}
+pi <- lam/sum(lam)
+pi
+```
+
+```{r}
+pi.cumul <- c()
+for (i in 1:length(lam)) {
+    pi.cumul[i] <- sum(pi[1:i])
+}
+pi.cumul
+```
+
+```{r}
+plot(pi.cumul, xlab='Eigenvalue Number', ylab='Cumulative Proportion', main='')
+lines(pi.cumul)
+abline(0.85, 0, lty=2)
+abline(0.90, 0, lty=2)
+abline(0.95, 0, lty=2)
+```
+
+```{r}
+Z <- X%*%V
+diag(var(Z))
+```
+
+```{r}
+pcr <- lm(quality ~ Z[,1:6])
+summary(pcr)
+```
+
+I decided to use the first 6 principle components, as they cover about 85% of the variance in wine quality.
+Comparing this to the original full model, we see that this model has the residual SE (0.62) and
+$R_{adj}^2$ (0.36) really close to the original model's values. And adding more principle components probably will not help too much.
+
+
+## c.
+
+```{r}
+pcr2 <- lm(quality ~ Z)
+b_hat_pca <- as.matrix(pcr2$coefficients[2:12], nr=11)
+b_hat <- V%*%b_hat_pca
+b_hat
+```
+
+Compared to the original model, these estimates for beta are now all really small, instead of a mix of small and big values.
+There are also some coefficients, like the last one (alcohol) is is kept about the same, probably because it was significant.
+
+
+

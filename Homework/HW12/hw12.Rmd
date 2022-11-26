@@ -1,0 +1,87 @@
+---
+title: "MATH405: HW12, Q3"
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part a.
+
+```{r}
+X <- matrix(c(1,5,1,2,1,0,1,-3), 4, 2, byrow=TRUE)
+X
+```
+
+# Part b.
+
+```{r}
+solve(t(X) %*% X)
+```
+
+# Part c.
+
+```{r}
+#install.packages("Matrix")
+library(Matrix)
+```
+
+\newpage
+
+# Part d.
+
+```{r}
+rankMatrix(X) == rankMatrix(t(X) %*% X)
+rankMatrix(t(X) %*% X) == rankMatrix(solve(t(X) %*% X))
+rankMatrix(X) == rankMatrix(solve(t(X) %*% X))
+```
+
+# Part e.
+
+## i.
+```{r}
+eigen(t(X) %*% X)$values
+```
+
+## ii.
+```{r}
+det(t(X) %*% X)
+```
+
+## iii.
+```{r}
+prod(eigen(t(X) %*% X)$values)
+```
+
+## iv.
+```{r}
+t(X) %*% X 
+```
+
+We see that the diagonal elements of $X^T X$ are positive. Thus, $X^T X$ is positive definite.
+
+
+# Part f.
+
+## i.
+
+```{r}
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+H
+```
+
+## ii.
+
+```{r}
+H %*% H 
+```
+
+It appears that $H$ is indeed idempotent since $HH=H$.
+
+
+
+
+

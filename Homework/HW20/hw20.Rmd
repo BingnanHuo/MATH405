@@ -1,0 +1,80 @@
+---
+title: 'HW 20 -- Q2'
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: 
+    pdf_document:
+        fig_width: 5.5
+        fig_height: 3.5
+        fig_caption: true
+papersize: letter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## a.
+
+```{r}
+fish <- read.csv("Fish.csv")
+attach(fish)
+
+mod_full <- lm(Weight ~ ., data=fish)
+summary(mod_full)
+```
+
+It appears that `SpeciesParkki`, `SpeciesSmelt`, and `Length1` are useful as they have significant coefficients.
+
+ - `SpeciesParkki`: The predicted weighted for Parkki fish is higher than that of Bream fish by 164.7 grams.
+ 
+ - `SpeciesSmelt`: The predicted weighted for Smelt fish is higher than that of Bream fish by 446.1 grams.
+ 
+ - `Length1`: The predicted weighted for a fish decrease by 80.3 grams for every 1 cm increase in vertical length.
+
+## b.
+
+```{r}
+library(MASS)
+mod_empty <- lm(Weight ~ 1, data=fish)
+stepAIC(mod_empty, scope=list(lower=mod_empty, upper=mod_full),
+        direction="both", k=log(length(fish)))
+```
+
+```{r, include=FALSE}
+library(tidyverse)
+library(caret)
+library(leaps)
+
+models <- regsubsets(Weight ~ ., data=fish, )
+summary(models)
+```
+
+```{r, include=FALSE}
+res.sum <- summary(models)
+data.frame(
+  Adj.R2 = which.max(res.sum$adjr2),
+  CP = which.min(res.sum$cp),
+  BIC = which.min(res.sum$bic)
+)
+
+data.frame(
+    Model = 1:8,
+  Adj.R2 = res.sum$adjr2,
+  CP = res.sum$cp,
+  BIC = res.sum$bic
+)
+```
+
+Using step-wise selection with BIC, the final model include `Species`, `Length1`, and `Length2` as predictors. This means that using a fish's species, vertical length, and diagonal length to predict its weight is a good approach.
+
+## c.
+
+```{r}
+mod_final <- lm(Weight ~ Species + Length1 + Length2)
+summary(mod_final)
+```
+
+I think the most important predictor in determining the weight of a fish is probably `Length2`. Because the diagonal length has the lower p-value and standard error for its coefficient, it has a stronger correlation with a fish's weight, compared to the correlation between the vertical length (`Length1`) and weight. And at the same time, the coefficient value of `Length2` has a higher magnitude, which might mean that it is more important, considering that the two lengths predictors values should have also be similar in magnitudes.
+
+

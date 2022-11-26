@@ -1,0 +1,4 @@
+"0","partition <- c()"
+"0","for (i in 1:length(nk)) {"
+"0","    partition <- c(partition, rep(x=i,nk[i]))"
+"0","}"

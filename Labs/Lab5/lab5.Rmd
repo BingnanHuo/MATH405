@@ -1,0 +1,147 @@
+---
+title: 'Lab #5 Report'
+author: "Nick Huo & Nahom Ayele"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Set-up
+
+```{r}
+library(carData)
+data("mtcars")
+```
+
+## Question 1
+
+### Part 1.
+
+```{r}
+model_ln <- lm(log(mpg) ~ cyl+disp+hp+wt, data = mtcars)
+summary(model_ln)
+```
+
+$F-statistic=48.66$; $DF=4,27$. Since we have a extremely small $p-value \ (<0.0001)$, we are able to reject $H_0$ as there is very strong evidence to suggest that one of the estimators has a slope different from $0$.
+
+### Part 2.
+
+```{r}
+lin_eft <- function(b) {
+    return(sign(b) * abs(exp(b)-1))
+}
+for (p in 1:4) {
+    this_name <- labels(model_ln)[p]
+    coef <- model_ln$coefficients[1+p]
+    print(paste("The linear effect of", this_name,"is",round(lin_eft(coef)*100,2),"%"))
+}
+```
+ - $cyl$: As engine cylinder count increases by 1, mpg decreases by 3.7% on average while holding other variables constant.
+ - $disp$: As engine displacement increases by 1 cu.in., mpg increases by 0.01% on average while holding other variables constant.
+ - $hp$: As engine gross horsepower increases by 1 hp, mpg decreases by 0.11% while holding other variables constant.
+ - $wt$: As car weight increases by 1000 lbs, mpg decreases by 16.6% while holding other variables constant.
+
+
+### Part 3.
+
+```{r}
+table_df <- data.frame("t-statistic"=round(summary(model_ln)$coefficients[2:5,3],2),
+              "p-value"=round(summary(model_ln)$coefficients[2:5,4],4))
+knitr::kable(
+  table_df, booktabs = TRUE, 
+  caption = 't-statistic and p-value of the covariates'
+)
+```
+
+### Part 4.
+
+```{r}
+confint(model_ln,c("cyl","disp","hp","wt"),level=.95)
+```
+
+
+### Part 5.
+
+```{r}
+hatvalues(model_ln)[1:5]
+```
+
+### Part 6.
+```{r}
+this_car<-data.frame(cyl=6, disp=190, hp=180, wt=1.5)
+predict(model_ln, newdata=this_car, interval="confidence", level=0.9)
+```
+
+### Part 7.
+```{r}
+predict(model_ln, newdata=this_car, interval="prediction", level=0.9)
+```
+
+
+## Question 2
+
+### Part 1.
+
+```{r}
+X <- cbind(rep(1,length(mtcars$mpg)), data.matrix(mtcars[,c(2:4,6)]))
+Y <- log(mtcars$mpg)
+B_hat <- solve(t(X) %*% X) %*% t(X) %*% Y
+B_hat
+```
+
+### Part 2.
+
+We know that $\hat{\beta} \sim MVN(\beta,\sigma^2(X^TX)^{-1})$. We can find the standard errors of the coefficients by looking at the square root of the variance of $\hat{\beta}$.
+
+```{r}
+SE <- sqrt(sigma(model_ln)**2 * diag(solve(t(X) %*% X)))
+test_statistics <- B_hat/SE
+test_statistics
+```
+
+We got the same results as compared to Q1 part 3.
+
+
+### Part 3.
+
+```{r}
+ME <- qt(0.975,length(mtcars$mpg-5)) * sqrt(sigma(model_ln)**2 * diag(solve(t(X) %*% X)))
+data.frame(low=round(B_hat-ME,5),high=round(B_hat+ME,5))[2:5,]
+```
+
+The answers we got here are very similar to the answers to Q1 part 4, but there are some differences after certain decimal places.
+
+
+### Part 4.
+
+```{r}
+H <- X %*% solve(t(X) %*% X) %*% t(X)
+diag(H[1:5,1:5])
+```
+
+We get the same results compared to Q1.
+
+### Part 5.
+
+```{r}
+x_new <- matrix(c(1, 6, 190, 180, 1.5), nrow = 1)
+ME_conf <- qt(0.95,length(mtcars$mpg-5)) * sqrt(sigma(model_ln)**2 * (x_new) %*% solve(t(X) %*% X) %*% t(x_new))
+data.frame(low=x_new%*%B_hat-ME_conf, high=x_new%*%B_hat+ME_conf)
+```
+
+We get the same results compared to Q1.
+
+
+### Part 6.
+
+```{r}
+x_new <- matrix(c(1, 6, 190, 180, 1.5), nrow = 1)
+ME_pred <- qt(0.95,length(mtcars$mpg-5)) * sqrt(sigma(model_ln)**2 * (1+ (x_new) %*% solve(t(X) %*% X) %*% t(x_new)))
+data.frame(low=x_new%*%B_hat-ME_pred, high=x_new%*%B_hat+ME_pred)
+```
+
+We get the same results compared to Q1.
+

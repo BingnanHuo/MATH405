@@ -1,0 +1,127 @@
+---
+title: "MATH405 -- HW 19"
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## a.
+
+```{r}
+library(MASS)
+dd <- read.csv("HW19.csv")
+```
+
+## b.
+
+```{r}
+empty.mod <- lm(y ~ 1, data=dd)
+full.mod <- lm(y ~ ., data=dd)
+stepAIC(empty.mod, scope=list(lower=empty.mod, upper=full.mod),
+        direction="both")
+```
+## c.
+
+```{r}
+stepAIC(empty.mod, scope=list(lower=empty.mod, upper=full.mod),
+        direction="both", k=log(length(dd)))
+```
+
+## d.
+
+The model we found using BIC for Step-wise Selection is more parsimonious because it has 9 predictors, fewer than the model found using AIC, which has 11 predictors.
+
+## e.
+
+### AIC Model -- 2-fold cross-validation
+
+#### Randomly split the data into train and test groups
+
+```{r}
+set.seed(893745)
+gp1 <- sample(1:700, size=350, replace=FALSE)
+gp2 <- (1:700)[-gp1]
+```
+
+
+#### Calculate MSPE: model trained on group 1, test on group 2
+
+```{r}
+aic_model1 <- lm(y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 +
+       x18 + x16 + x20, data = dd[gp1,])
+aic_gp2_pred <- predict(aic_model1, dd[gp2,])
+aic_gp2_y <- dd[gp2,1]
+mspe_aic_mod1 <- mean((aic_gp2_y - aic_gp2_pred)^2)
+```
+
+#### Calculate MSPE: model trained on group 2, test on group 1
+
+```{r}
+aic_model2 <- lm(y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 +
+       x18 + x16 + x20, data = dd[gp2,])
+aic_gp1_pred <- predict(aic_model1, dd[gp1,])
+aic_gp1_y <- dd[gp1,1]
+mspe_aic_mod2 <- mean((aic_gp1_y - aic_gp1_pred)^2)
+```
+
+#### AIC Model Overall MSPE
+
+```{r}
+mean(mspe_aic_mod1, mspe_aic_mod2)
+```
+
+
+
+### BIC Model -- 2-fold cross-validation
+
+#### Calculate MSPE: model trained on group 1, test on group 2
+
+```{r}
+bic_model1 <- lm(formula = y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 + x18, 
+                data=dd[gp1,])
+
+bic_gp2_pred <- predict(bic_model1, dd[gp2,])
+bic_gp2_y <- dd[gp2,1]
+mspe_bic_mod1 <- mean((bic_gp2_y - bic_gp2_pred)^2)
+```
+
+#### Calculate MSPE: model trained on group 2, test on group 1
+
+```{r}
+bic_model2 <- lm(formula = y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 + x18, 
+                data=dd[gp2,])
+bic_gp1_pred <- predict(bic_model1, dd[gp1,])
+bic_gp1_y <- dd[gp1,1]
+mspe_bic_mod2 <- mean((bic_gp1_y - bic_gp1_pred)^2)
+```
+
+#### AIC Model Overall MSPE
+
+```{r}
+mean(mspe_bic_mod1, mspe_bic_mod2)
+```
+
+## f.
+
+```{r}
+tab_df <- data.frame(MSPE=c(1615.653, 1625.888), 
+                     row.names=c("AIC Model","BIC Model"))
+knitr::kable(tab_df)
+```
+
+The AIC model has a slightly lower MSPE. So the AIC model (with more predictors) seem to be better at prediction. Also noticing that
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,6 @@
+"0","sd_mspe <- c(sd(MSPE.mod1),sd(MSPE.mod2),sd(MSPE.mod3),sd(MSPE.mod4))"
+"0","results_df <- data.frame(""adj R_sq"" = c(0.497, 0.513, 0.455, 0.496),"
+"0","                         ""Mean MSPE"" = t(mspe_mean_df[1,2:5])[1:4],"
+"0","                         ""SD MSPE"" = sd_mspe,"
+"0","                         row.names = c(""Model 1"", ""Model 2"",""Model 3"",""Model 4""))"
+"0","knitr::kable(results_df)"

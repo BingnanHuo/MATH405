@@ -1,0 +1,301 @@
+---
+title: 'Lab #6 Report'
+author: "Nick Huo & Severin Johnson"
+date: "`r Sys.Date()`"
+output: 
+    pdf_document:
+        fig_width: 5.5
+        fig_height: 3.5
+        fig_caption: true
+papersize: letter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+## 1. Remove incomplete rows and categorical variables
+
+```{r}
+library(ISLR)
+data(Hitters)
+
+Hitters <- na.omit(Hitters)
+cat.cols <- c("League","Division","NewLeague")
+Hitters <- Hitters[ ,-which(colnames(Hitters)%in%cat.cols)]
+attach(Hitters)
+```
+
+## 2. Distribution of Salary
+
+```{r}
+hist(Salary, main="Distribution of Salary", 
+     xlab="1987 annual salary on opening day in thousands of dollars")
+```
+
+The distribution looks like exponential with a right skew (tail). It means that most people get relatively low salaries while a few gets really high salaries. It makes sense because we would expect that there are a few sport stars that get paid a lot more than others.
+
+## 3. Model 1: Full Model -- Salary
+
+```{r}
+model1 <- lm(Salary ~ ., data=Hitters)
+summary(model1)
+```
+
+We see $R_{adj}^2=0.497$. This means that about 49.7% of the variability in Salary is explained by Model 1.
+
+## 4. Model 2: Full Model -- Log(Salary)
+
+```{r}
+model2 <- lm(log(Salary) ~ ., data=Hitters)
+summary(model2)
+```
+
+We see $R_{adj}^2=0.513$. This means that about 51.3% of the variability in Log(Salary) is explained by Model 2.
+
+## 5. Convert dataset to matrix format
+
+```{r}
+X <- as.matrix(Hitters[,-which(colnames(Hitters) == "Salary")])
+```
+
+## 6. Model 3: Use LASSO with cross-validation -- Salary
+
+### a. LASSO with 10-fold cv
+
+```{r message=FALSE, warning=FALSE}
+library(glmnet)
+lasso.cv <- cv.glmnet(x=X, y=Salary, nfolds=10, type.measure="mse")
+```
+
+### b. MSPE for the sequence of $\lambda$ values
+
+```{r}
+plot(lasso.cv)
+```
+
+### c. Use the $\lambda$ value that leads to a more parsimonious model
+
+```{r}
+lasso.cv$lambda.1se
+```
+
+### d. Covaroates associated with this $\lambda$
+
+```{r}
+lasso.1se <- glmnet(x=X,y=Salary, lambda=lasso.cv$lambda.1se)
+lasso.1se$beta
+```
+
+
+## 7. Model 4: LASSO for Log(Salary)
+
+### a. LASSO with 10-fold cv
+
+```{r message=FALSE, warning=FALSE}
+lasso2.cv <- cv.glmnet(x=X, y=log(Salary), nfolds=10, type.measure="mse")
+```
+
+### b. MSPE for the sequence of $\lambda$ values
+
+```{r}
+plot(lasso2.cv)
+```
+
+### c. Use the $\lambda$ value that leads to a more parsimonious model
+
+```{r}
+lasso2.cv$lambda.1se
+```
+
+### d. Covaroates associated with this $\lambda$
+
+```{r}
+lasso2.1se <- glmnet(x=X,y=log(Salary), lambda=lasso2.cv$lambda.1se)
+lasso2.1se$beta
+```
+
+## 8. Fit and compare Model 3 and Model 4
+
+```{r}
+model3 <- lm(Salary ~ Hits+Walks+CRuns+CRBI+PutOuts)
+summary(model3)
+```
+
+
+```{r}
+model4 <- lm(log(Salary) ~ Hits+RBI+Walks+Years+CHits+CRuns+CRBI)
+summary(model4)
+```
+
+Model 3 has 5 covariates (4 significant) with $R_{adj}^2=0.455$.
+
+Model 4 has 7 covariates (3 significant) with $R_{adj}^2=0.496$.
+
+Although Model 4 has fewer significant covariates, it has a slightly higher $R_{adj}^2$.
+
+
+# Question 2
+
+## 1. Shuffle the dataset
+
+```{r}
+set.seed(12345)
+Hitters <- Hitters[sample(1:263), ]
+```
+
+## 2. How many partitions and nrows of data in each partition
+
+```{r}
+nk <- c(rep(x=13,17),rep(x=14,3))
+sum(nk)
+```
+
+## 3. Partition table
+
+```{r}
+partition <- c()
+for (i in 1:length(nk)) {
+    partition <- c(partition, rep(x=i,nk[i]))
+}
+```
+
+## 4. The first fold
+
+```{r}
+training <- Hitters[which(partition!=20),]
+test <- Hitters[which(partition==20),]
+```
+
+## 5. Create an empty list to store the folds
+
+```{r}
+my.folds <- vector(mode="list", length=20)
+```
+
+## 6. Populate this list
+
+```{r}
+for (i in 1:20) {
+    test_idx <- 21-i
+    my.folds[[i]]$training <- Hitters[which(partition!=test_idx),]
+    my.folds[[i]]$test <- Hitters[which(partition==test_idx),]
+}
+#my.folds[[1]]
+```
+
+# Question 3
+
+## 1. Fit Model 1 using 1st fold and calculate MSPE
+
+```{r}
+mod1_fold1 <- lm(Salary ~ ., data=my.folds[[1]]$training)
+mean((my.folds[[1]]$test[,1] - predict(mod1_fold1, my.folds[[1]]$test))^2)
+```
+
+## 2 & 3. Calculate MSPE for Model 1 and Model 3 with cv
+
+```{r}
+MSPE.mod1 <- rep(NA,20)
+MSPE.mod3 <- rep(NA,20)
+
+for (i in 1:20) {
+    mod1_fold_i <- lm(Salary ~ ., data=my.folds[[i]]$training)
+    mod3_fold_i <- lm(Salary ~ Hits+Walks+CRuns+CRBI+PutOuts, data=my.folds[[i]]$training)
+
+    MSPE.mod1[i] <- mean((my.folds[[i]]$test[,1] - predict(mod1_fold_i, my.folds[[i]]$test))^2)
+    MSPE.mod3[i] <- mean((my.folds[[i]]$test[,1] - predict(mod3_fold_i, my.folds[[i]]$test))^2)
+}
+MSPE.mod1
+MSPE.mod3
+```
+
+
+## 4. Calculate MSPE for Model 2 and Model 4 with cv
+
+```{r}
+MSPE.mod2 <- rep(NA,20)
+MSPE.mod4 <- rep(NA,20)
+for (i in 1:20) {
+    mod2_fold_i <- lm(log(Salary) ~ ., data=my.folds[[i]]$training)
+    mod4_fold_i <- lm(log(Salary) ~ Hits+RBI+Walks+Years+CHits+CRuns+CRBI,
+                      data=my.folds[[i]]$training)
+
+    MSPE.mod2[i] <- mean((my.folds[[i]]$test[,1] - 
+                              exp(predict(mod2_fold_i, my.folds[[i]]$test)))^2)
+    MSPE.mod4[i] <- mean((my.folds[[i]]$test[,1] - 
+                              exp(predict(mod4_fold_i, my.folds[[i]]$test)))^2)
+}
+MSPE.mod2
+MSPE.mod4
+```
+
+## 5. MSPE Plot
+
+```{r}
+library(ggplot2)
+mspe_df <- data.frame(Fold = 1:20,
+                      "Model_1" = MSPE.mod1,
+                      "Model_2" = MSPE.mod2,
+                      "Model_3" = MSPE.mod3,
+                      "Model_4" = MSPE.mod4)
+ggplot(mspe_df, aes(x=Fold)) +
+    geom_line(aes(y=Model_1, color="Model 1", linetype="Model 1")) + 
+    geom_line(aes(y=Model_2, color="Model 2", linetype="Model 2")) +
+    geom_line(aes(y=Model_3, color="Model 3", linetype="Model 3")) +
+    geom_line(aes(y=Model_4, color="Model 4", linetype="Model 4")) +
+    scale_colour_manual("MSPE", 
+                      breaks = c("Model 1","Model 2","Model 3","Model 4"),
+                      values = c("#64c5f5", "#f5d498", "#142bfa", "#f2a900")) +
+    scale_linetype_manual("MSPE", 
+                      breaks = c("Model 1","Model 2","Model 3","Model 4"),
+                      values = c("solid", "solid", "twodash", "twodash"))+
+    ggtitle("MSPE For Each Fold by Model") +
+    ylab("MSPE")
+```
+
+The untransformed models (1 & 3) are in blue; the Log models (2 & 4) are in orange.
+
+The regular models (1 & 2) have solid lines; the LASSO models (3 & 4) have dashed lines.
+
+## 6. Mean MSPE Plot
+
+```{r}
+mspe_mean_df <- data.frame(Fold = 1:20,
+                      "Model_1" = mean(MSPE.mod1),
+                      "Model_2" = mean(MSPE.mod2),
+                      "Model_3" = mean(MSPE.mod3),
+                      "Model_4" = mean(MSPE.mod4))
+ggplot(mspe_mean_df, aes(x=Fold)) +
+    geom_line(aes(y=Model_1, color="Model 1", linetype="Model 1")) + 
+    geom_line(aes(y=Model_2, color="Model 2", linetype="Model 2")) +
+    geom_line(aes(y=Model_3, color="Model 3", linetype="Model 3")) +
+    geom_line(aes(y=Model_4, color="Model 4", linetype="Model 4")) +
+    scale_colour_manual("MSPE", 
+                      breaks = c("Model 1","Model 2","Model 3","Model 4"),
+                      values = c("#64c5f5", "#f5d498", "#142bfa", "#f2a900")) +
+    scale_linetype_manual("MSPE", 
+                      breaks = c("Model 1","Model 2","Model 3","Model 4"),
+                      values = c("solid", "solid", "twodash", "twodash"))+
+    ggtitle("Mean MSPE by Model") +
+    ylab("MSPE")
+```
+
+## 7. Model Recommendation
+
+```{r}
+sd_mspe <- c(sd(MSPE.mod1),sd(MSPE.mod2),sd(MSPE.mod3),sd(MSPE.mod4))
+results_df <- data.frame("adj R_sq" = c(0.497, 0.513, 0.455, 0.496),
+                         "Mean MSPE" = t(mspe_mean_df[1,2:5])[1:4],
+                         "SD MSPE" = sd_mspe,
+                         row.names = c("Model 1", "Model 2","Model 3","Model 4"))
+knitr::kable(results_df)
+```
+
+Looking at the $R_{adj}^2$ values, we see that all four models are at around 50%, with the LASSO models (3 and 4) having slightly lower $R_{adj}^2$ compared to the first two models. But if we look at mean MSPE, we see the LASSO models performing better, despite having lower $R_{adj}^2$. Also noticing that the log models (2 and 4) have much higher mean MSPE and variability in MSPE values, so we would choose the untransformed model (1 and 2). Then, since Model 3 has the lowest mean MSPE and lowest MSPE for almost every fold, and the lowest variability (judging by the plot), I recommend using Model 3 to predict the salaries of players.
+
+
+
+

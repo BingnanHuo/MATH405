@@ -1,0 +1,6 @@
+"0","bic_model1 <- lm(formula = y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 + x18, "
+"0","                data=dd[gp1,])"
+"0",""
+"0","bic_gp2_pred <- predict(bic_model1, dd[gp2,])"
+"0","bic_gp2_y <- dd[gp2,1]"
+"0","mspe_bic_mod1 <- mean((bic_gp2_y - bic_gp2_pred)^2)"

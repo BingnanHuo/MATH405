@@ -1,0 +1,2 @@
+"0","training <- Hitters[which(partition!=20),]"
+"0","test <- Hitters[which(partition==20),]"

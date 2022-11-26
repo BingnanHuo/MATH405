@@ -1,0 +1,3 @@
+"0","detach(dat)"
+"0","wine <- read.csv(""winequality.csv"")"
+"0","attach(wine)"

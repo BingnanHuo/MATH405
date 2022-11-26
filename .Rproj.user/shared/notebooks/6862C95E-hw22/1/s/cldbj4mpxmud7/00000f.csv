@@ -1,0 +1,3 @@
+"0","V <- e$vectors"
+"0","lam <- e$values"
+"0","plot(lam, xlab='Eigenvalue Number', ylab='Eigenvalue Size', main='Scree Plot')"

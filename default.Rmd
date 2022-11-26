@@ -1,0 +1,75 @@
+---
+title: "Multicollinearity"
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Test
+
+```{r}
+library(car)
+data("mtcars")
+attach(mtcars)
+```
+
+```{r}
+mod <- lm(log(mpg) ~ (cyl)+(hp)+(qsec))
+summary(mod)
+```
+
+```{r}
+sd_df <- data.frame(
+    SD = c(sd(cyl),sd(hp),sd(qsec)),
+    row.names = c("cyl","hp","qsec")
+)
+sd_df
+```
+
+```{r}
+mod$coefficients[2:4]*sd_df
+```
+
+
+```{r}
+mod_std <- lm(log(mpg) ~ scale(cyl)+scale(hp)+scale(qsec))
+summary(mod_std)
+```
+
+```{r}
+X = matrix(c(1,0.35,-1.45,
+             1,0.06,0.72,
+             1,-1.54,0.50,
+             1,1.23,0.86,
+             1,-0.10,-0.63),
+           5,3, byrow=T)
+cor(X[,2],X[,3])
+```
+
+```{r}
+t(X) %*% X
+```
+
+```{r}
+solve(t(X) %*% X)
+```
+
+
+```{r}
+X2 = matrix(c(1,0.08,0.05,
+             1,1.08,1.08,
+             1,-0.76,-0.46,
+             1,0.84,0.76,
+             1,-1.24,-1.43),
+           5,3, byrow = T)
+cor(X2[,2],X2[,3])
+```
+
+```{r}
+solve(t(X2) %*% X2)
+```
+
