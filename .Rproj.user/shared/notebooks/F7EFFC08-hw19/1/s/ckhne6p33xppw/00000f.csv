@@ -1,5 +1,0 @@
-"0","aic_model2 <- lm(y ~ x4 + x1 + x13 + x11 + x5 + x2 + x7 + x15 +"
-"0","       x18 + x16 + x20, data = dd[gp2,])"
-"0","aic_gp1_pred <- predict(aic_model1, dd[gp1,])"
-"0","aic_gp1_y <- dd[gp1,1]"
-"0","mspe_aic_mod2 <- mean((aic_gp1_y - aic_gp1_pred)^2)"

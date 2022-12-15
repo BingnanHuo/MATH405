@@ -1,6 +1,0 @@
-"0","mod1_fold1 <- lm(Salary ~ ., data=my.folds[[1]]$training)"
-"0","mean((my.folds[[1]]$test[,1] - predict(mod1_fold1, my.folds[[1]]$test))^2)"
-"1","[1]"
-"1"," 118921.7"
-"1","
-"

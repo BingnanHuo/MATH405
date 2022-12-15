@@ -1,1 +1,0 @@
-"0","lasso2.cv <- cv.glmnet(x=X, y=log(Salary), nfolds=10, type.measure=""mse"")"

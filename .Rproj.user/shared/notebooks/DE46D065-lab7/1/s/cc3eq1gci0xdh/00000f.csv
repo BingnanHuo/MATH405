@@ -1,4 +1,0 @@
-"0","mse <- matrix(NA, 1000, 5)"
-"0","for (i in 1:1000) {"
-"0","    mse[i,] <- vars_ridge[i,] + (biases_ridge[i,])^2"
-"0","}"

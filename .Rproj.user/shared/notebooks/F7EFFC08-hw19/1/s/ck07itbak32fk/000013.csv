@@ -1,3 +1,0 @@
-"0","tab_df <- data.frame(MSPE=c(1615.653, 1625.888), "
-"0","                     row.names=c(""AIC Model"",""BIC Model""))"
-"0","knitr::kable(tab_df)"

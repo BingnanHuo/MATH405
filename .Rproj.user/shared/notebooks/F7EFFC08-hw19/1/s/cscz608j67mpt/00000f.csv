@@ -1,3 +1,0 @@
-"0","set.seed(893745)"
-"0","gp1 <- sample(1:700, size=350, replace=FALSE)"
-"0","gp2 <- (1:700)[-gp1]"

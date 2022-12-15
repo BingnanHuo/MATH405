@@ -1,0 +1,38 @@
+---
+title: 'Math405 -- HW23'
+author: "Nick Huo"
+date: "`r Sys.Date()`"
+output: 
+    pdf_document:
+        fig_width: 5.5
+        fig_height: 3.5
+        fig_caption: true
+papersize: letter
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+## (a) & (b)
+```{r}
+curve(exp(0 + 1*x)/(1 + exp(0 + 1*x)), from=-10, to=10, lwd=2, xlab="x", ylab="pi")
+curve(exp(2 + 1*x)/(1 + exp(2 + 1*x)), add=TRUE, col="blue", type="l")
+curve(exp(-2 + 1*x)/(1 + exp(-2 + 1*x)), add=TRUE, col="red", type="l")
+```
+## (a) & (b)
+```{r}
+curve(exp(0 + 1*x)/(1 + exp(0 + 1*x)), from=-10, to=10, lwd=2, xlab="x", ylab="pi")
+curve(exp(2 + 1*x)/(1 + exp(2 + 1*x)), add=TRUE, col="blue", type="l")
+curve(exp(-2 + 1*x)/(1 + exp(-2 + 1*x)), add=TRUE, col="red", type="l")
+```
+
+In the probability form, as $B_0$ increases, the model shift horizontally to the left; as $B_0$ decreases, the model shift horizontally to the right.
+
+
+
+
+
+
+
